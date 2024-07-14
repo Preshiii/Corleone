@@ -334,7 +334,7 @@ async def pm_spoll_choker(client, msg):
     if not movielist:
         try:
             k = await msg.reply("<b>💔 I couldn't find anything related to that. Check your spelling</b>")
-            await asyncio.sleep(8)
+            await asyncio.sleep(10)
             await k.delete()
         except FloodWait as e:
             print(f"FloodWait: Waiting for {e.x} seconds before retrying...")
