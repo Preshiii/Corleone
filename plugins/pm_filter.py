@@ -148,132 +148,133 @@ async def pm_spoll_tester(bot, query):
 
    
 async def pm_AutoFilter(client, msg, pmspoll=False):
-    if not pmspoll:
-        message = msg
-        settings = await get_settings(message.chat.id)
-        if message.text.startswith("/"): return  # ignore commands
-        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
-            return
-        if len(message.text) < 100:
-            search = message.text
-            files, offset, total_results = await get_search_results(message.chat.id, search.lower(), offset=0, filter=True)
-            if not files:
-                if settings["spell_check"]:
-                    return await pm_spoll_choker(client, msg)
+    try:
+        if not pmspoll:
+            message = msg
+            settings = await get_settings(message.chat.id)
+            if message.text.startswith("/"): return  # ignore commands
+            if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
+                return
+            if len(message.text) < 100:
+                search = message.text
+                files, offset, total_results = await get_search_results(message.chat.id, search.lower(), offset=0, filter=True)
+                if not files:
+                    if settings["spell_check"]:
+                        return await pm_spoll_choker(client, msg)
+                    return
+            else:
                 return
         else:
-            return
-    else:
-        message = msg.message.reply_to_message  # msg will be callback query
-        search, files, offset, total_results = pmspoll
-        settings = await get_settings(message.chat.id)
+            message = msg.message.reply_to_message  # msg will be callback query
+            search, files, offset, total_results = pmspoll
+            settings = await get_settings(message.chat.id)
 
-    temp.KEYWORD[message.from_user.id] = search
+        temp.KEYWORD[message.from_user.id] = search
 
-    pre = 'pmfilep' if settings['file_secure'] else 'pmfile'
+        pre = 'pmfilep' if settings['file_secure'] else 'pmfile'
 
-    if settings["button"]:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"➲ {get_size(file.file_size)} || {file.file_name}",
-                    callback_data=f'{pre}#{file.file_id}'
-                ),
+        if settings["button"]:
+            btn = [
+                [
+                    InlineKeyboardButton(
+                        text=f"➲ {get_size(file.file_size)} || {file.file_name}",
+                        callback_data=f'{pre}#{file.file_id}'
+                    ),
+                ]
+                for file in files
             ]
-            for file in files
-        ]
-    else:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"{file.file_name}",
-                    callback_data=f'{pre}#{file.file_id}',
-                ),
-                InlineKeyboardButton(
-                    text=f"{get_size(file.file_size)}",
-                    callback_data=f'{pre}#{file.file_id}',
-                ),
+        else:
+            btn = [
+                [
+                    InlineKeyboardButton(
+                        text=f"{file.file_name}",
+                        callback_data=f'{pre}#{file.file_id}',
+                    ),
+                    InlineKeyboardButton(
+                        text=f"{get_size(file.file_size)}",
+                        callback_data=f'{pre}#{file.file_id}',
+                    ),
+                ]
+                for file in files
             ]
-            for file in files
-        ]
 
-    try:
-        btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url='https://t.me/Adultship_films')])
-    except KeyError:
-        await save_group_settings(message.chat.id, 'auto_delete', True)
-        btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url='https://t.me/Adultship_films')])
+        try:
+            btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url='https://t.me/Adultship_films')])
+        except KeyError:
+            await save_group_settings(message.chat.id, 'auto_delete', True)
+            btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url='https://t.me/Adultship_films')])
 
-    if offset:
-        key = f"{message.chat.id}-{message.id}"
-        BUTTONS[key] = search
-        req = message.from_user.id if message.from_user else 0
-        btn.append(
-            [InlineKeyboardButton(text=f"📑 ᴩᴀɢᴇꜱ 1/{math.ceil(int(total_results) / 6)}", callback_data="pages"),
-            InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{offset}")]
-        )
-    else:
-        btn.append(
-            [InlineKeyboardButton(text="📑 ᴩᴀɢᴇꜱ 1/1", callback_data="pages")]
-        )
-
-    imdb = await get_poster(search, file=files[0].file_name) if settings["imdb"] else None
-    TEMPLATE = settings['template']
-    cap = TEMPLATE.format(
-        query=search,
-        title=imdb['title'],
-        votes=imdb['votes'],
-        aka=imdb["aka"],
-        seasons=imdb["seasons"],
-        box_office=imdb['box_office'],
-        localized_title=imdb['localized_title'],
-        kind=imdb['kind'],
-        imdb_id=imdb["imdb_id"],
-        cast=imdb["cast"],
-        runtime=imdb["runtime"],
-        countries=imdb["countries"],
-        certificates=imdb["certificates"],
-        languages=imdb["languages"],
-        director=imdb["director"],
-        writer=imdb["writer"],
-        producer=imdb["producer"],
-        composer=imdb["composer"],
-        cinematographer=imdb["cinematographer"],
-        music_team=imdb["music_team"],
-        distributors=imdb["distributors"],
-        release_date=imdb['release_date'],
-        year=imdb['year'],
-        genres=imdb['genres'],
-        poster=imdb['poster'],
-        plot=imdb['plot'],
-        rating=imdb['rating'],
-        url=imdb['url'],
-        **locals()
-    ) if imdb else f"<code>{search}</code>"
-
-    try:
-        if imdb and imdb.get('poster'):
-            hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(hehe, message, settings)
+        if offset:
+            key = f"{message.chat.id}-{message.id}"
+            BUTTONS[key] = search
+            req = message.from_user.id if message.from_user else 0
+            btn.append(
+                [InlineKeyboardButton(text=f"📑 ᴩᴀɢᴇꜱ 1/{math.ceil(int(total_results) / 6)}", callback_data="pages"),
+                InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{offset}")]
+            )
         else:
-            fuk = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(fuk, message, settings)
-    except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
-        poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg") if imdb and imdb.get('poster') else None
-        if poster:
-            hmm = await message.reply_photo(photo=poster, caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(hmm, message, settings)
-        else:
+            btn.append(
+                [InlineKeyboardButton(text="📑 ᴩᴀɢᴇꜱ 1/1", callback_data="pages")]
+            )
+
+        imdb = await get_poster(search, file=files[0].file_name) if settings["imdb"] else None
+        TEMPLATE = settings['template']
+        cap = TEMPLATE.format(
+            query=search,
+            title=imdb['title'],
+            votes=imdb['votes'],
+            aka=imdb["aka"],
+            seasons=imdb["seasons"],
+            box_office=imdb['box_office'],
+            localized_title=imdb['localized_title'],
+            kind=imdb['kind'],
+            imdb_id=imdb["imdb_id"],
+            cast=imdb["cast"],
+            runtime=imdb["runtime"],
+            countries=imdb["countries"],
+            certificates=imdb["certificates"],
+            languages=imdb["languages"],
+            director=imdb["director"],
+            writer=imdb["writer"],
+            producer=imdb["producer"],
+            composer=imdb["composer"],
+            cinematographer=imdb["cinematographer"],
+            music_team=imdb["music_team"],
+            distributors=imdb["distributors"],
+            release_date=imdb['release_date'],
+            year=imdb['year'],
+            genres=imdb['genres'],
+            poster=imdb['poster'],
+            plot=imdb['plot'],
+            rating=imdb['rating'],
+            url=imdb['url'],
+            **locals()
+        ) if imdb else f"<code>{search}</code>"
+
+        try:
+            if imdb and imdb.get('poster'):
+                hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(hehe, message, settings)
+            else:
+                fuk = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(fuk, message, settings)
+        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+            poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg") if imdb and imdb.get('poster') else None
+            if poster:
+                hmm = await message.reply_photo(photo=poster, caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(hmm, message, settings)
+            else:
+                fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(fek, message, settings)
+        except Exception as e:
+            logger.exception(e)
             fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
             await handle_auto_delete(fek, message, settings)
-    except Exception as e:
-        logger.exception(e)
-        fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        await handle_auto_delete(fek, message, settings)
 
-    if pmspoll:
-        await msg.message.delete()
+        if pmspoll:
+            await msg.message.delete()
 
-except FloodWait as e:
+    except FloodWait as e:
         print(f"FloodWait: Waiting for {e.x} seconds before retrying...")
         await asyncio.sleep(e.x)
         return await pm_AutoFilter(client, msg, pmspoll)
