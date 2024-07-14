@@ -255,29 +255,29 @@ async def auto_filter(client, msg, spoll=False):
     ) if imdb else f"<code>{search}</code>"
 
     try:
-        if imdb and imdb.get('poster'):
-            hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(hehe, message, settings)
-        else:
-            fuk = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(fuk, message, settings)
-    except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
-        poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg") if imdb and imdb.get('poster') else None
-        if poster:
-            hmm = await message.reply_photo(photo=poster, caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
-            await handle_auto_delete(hmm, message, settings)
-        else:
+            if imdb and imdb.get('poster'):
+                hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(hehe, message, settings)
+            else:
+                fuk = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(fuk, message, settings)
+        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+            poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg") if imdb and imdb.get('poster') else None
+            if poster:
+                hmm = await message.reply_photo(photo=poster, caption=cap[:1024], reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(hmm, message, settings)
+            else:
+                fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+                await handle_auto_delete(fek, message, settings)
+        except Exception as e:
+            logger.exception(e)
             fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
             await handle_auto_delete(fek, message, settings)
-    except Exception as e:
-        logger.exception(e)
-        fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
-        await handle_auto_delete(fek, message, settings)
 
-    if spoll:
-        await msg.message.delete()
+        if spoll:
+            await msg.message.delete()
 
-except FloodWait as e:
+    except FloodWait as e:
         print(f"FloodWait: Waiting for {e.x} seconds before retrying...")
         await asyncio.sleep(e.x)
         return await auto_filter(client, msg, spoll)
