@@ -26,6 +26,9 @@ BTN_URL_REGEX = re.compile(
     r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))"
 )
 
+# Cache dictionary
+search_cache = {}
+
 imdb = Cinemagoer()
 BANNED = {}
 SMART_OPEN = '“'
@@ -142,17 +145,30 @@ async def get_poster(query, bulk=False, id=False, file=None):
 # https://github.com/odysseusmax/animated-lamp/blob/2ef4730eb2b5f0596ed6d03e7b05243d93e3415b/bot/utils/broadcast.py#L37
 
 async def search_gagala(text):
-    usr_agent = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/61.0.3163.100 Safari/537.36'
+    try:
+        usr_agent = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/61.0.3163.100 Safari/537.36'
         }
-    text = text.replace(" ", '+')
-    url = f'https://www.google.com/search?q={text}'
-    response = requests.get(url, headers=usr_agent)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'html.parser')
-    titles = soup.find_all( 'h3' )
-    return [title.getText() for title in titles]
+        
+        text = text.replace(" ", '+')
+        url = f'https://www.google.com/search?q={text}'
+        
+        response = requests.get(url, headers=usr_agent)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        titles = soup.find_all('h3')
+        
+        return [title.getText() for title in titles]
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Request error occurred: {e}")
+        return []
+    
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return []
 
 async def get_settings(group_id):
     settings = temp.SETTINGS.get(group_id)
