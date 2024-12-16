@@ -14,7 +14,7 @@ COPY requirements.txt /requirements.txt
 RUN pip3 install -U pip && pip3 install -U -r /requirements.txt
 
 # Create a directory for the application
-RUN mkdir /Hislordshipb
+RUN mkdir /Corleone
 
 # Set the working directory
 WORKDIR /Corleone
