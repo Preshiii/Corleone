@@ -28,14 +28,14 @@ auth_users = [int(user) if id_pattern.search(user) else user for user in environ
 AUTH_USERS = (auth_users + ADMINS) if auth_users else []
 auth_channel = environ.get('AUTH_CHANNEL')
 auth_grp = environ.get('AUTH_GROUP')
-AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_channel) else None
+AUTH_CHANNEL = [int(auth_channel) for auth_channel in environ.get('AUTH_CHANNEL', '').split() if id_pattern.search(auth_channel)]
 AUTH_GROUPS = [int(ch) for ch in auth_grp.split()] if auth_grp else None
 
 # MongoDB information
 SECONDDB_URI = environ.get('SECONDDB_URI', None)
 DATABASE_URI = environ.get('DATABASE_URI', "")
-DATABASE_NAME = environ.get('DATABASE_NAME', "Rajappan")
-COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Telegram_files')
+DATABASE_NAME = environ.get('DATABASE_NAME', "Not3s")
+COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Corleone')
 
 # Others
 DELETE_CHANNELS = [int(dch) if id_pattern.search(dch) else dch for dch in environ.get('DELETE_CHANNELS', '0').split()]
@@ -43,7 +43,7 @@ MAX_B_TN = environ.get("MAX_B_TN", "10")
 MAX_BTN = is_enabled((environ.get('MAX_BTN', "True")), True)
 PORT = environ.get("PORT", "8080")
 GRP_LNK = environ.get('GRP_LNK', 'https://t.me/Derockx')
-CHNL_LNK = environ.get('CHNL_LNK', 'https://t.me/+YnHhBltstc0yNDA0')
+CHNL_LNK = environ.get('CHNL_LNK', 'https://t.me/Hislordship_links')
 MSG_ALRT = environ.get('MSG_ALRT', '𝒑𝒓𝒐𝒄𝒆𝒔𝒔𝒊𝒏𝒈...⏳')
 LOG_CHANNEL = int(environ.get('LOG_CHANNEL', 0))
 SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'mcrequestbot')
