@@ -202,7 +202,7 @@ async def pm_AutoFilter(client, msg, pmspoll=False):
             btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url=CHNL_LNK)])
         except KeyError:
             await save_group_settings(message.chat.id, 'auto_delete', True)
-            btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url=CHNL_LNK])
+            btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url=CHNL_LNK)])
 
         if offset:
             key = f"{message.chat.id}-{message.id}"
