@@ -19,10 +19,12 @@ RUN mkdir /Corleone
 # Set the working directory
 WORKDIR /Corleone
 
+# Copy the start script into the container
+COPY start.sh /start.sh
+
 # Expose the necessary port (e.g., 8000, adjust as needed)
 # This fixes the issue by making the port available to Docker
 EXPOSE 8080
 
 # Set the default command to run the start script
-COPY . .
-CMD ["python", "bot.py"]
+CMD ["/bin/bash", "/start.sh"]
